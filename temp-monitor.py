@@ -28,19 +28,17 @@ sensor.begin()
 
 temp_buffer = deque(maxlen=10)  # 10 position buffer for the last 10 reads
 
-data = {
-        'text' : "Panic! Someone left the fridge open."
-}
-
 mins_since_post = 15
 
 text_list = ["Don't blame the messenger, but someone left the freezer door open.",
              "Panic! Someone left the freezer open.",
              "I'm meeeeelting... close the freezer.",
              "There goes my snowman! Close the freezer.",
-             "♫ Let it go, let it goooo ♫ And by it, I mean the freezer door.",
+             "♫ Let it go, let it goooo ♫ And by it, I mean the freezer door when you close it.",
              "You know, there are cheaper ways to get air conditioning. Close the freezer door.",
-             ""
+             "Drip...drip...drip... That's the sound of everything in the freezer melting. Close the door!",
+             "<Insert clever message about the freezer door bring open> ...Yeah I got lazy on this one.",
+             "It's called a freezer, not a melter! Close the door!"
              ]
 
 error_encountered = 0
@@ -84,11 +82,11 @@ def check_temp():
     temp = sensor.readTempC()
     temp_buffer.append(temp)
 
-    if mean(temp_buffer) > -10 and mins_since_post > 5:
+    if mean(temp_buffer) > -10 and mins_since_post > 10:
         webhook_slack_post(temp_buffer[0])
         mins_since_post = 0
 
-    elif mean(temp_buffer) > -10 and mins_since_post < 5:   # Makes sure that app doesn't constantly post to slack, waits 5 minutes after last post (mins_since_post) before posting
+    elif mean(temp_buffer) > -10 and mins_since_post < 10:   # Makes sure that app doesn't constantly post to slack, waits 5 minutes after last post (mins_since_post) before posting
         mins_since_post = mins_since_post + 1
         if mins_since_post > 60000:
             mins_since_post = 100        # Ensures that integer doesn't overflow if freezer doesn't go over threshold for long time (unlikely, but possible)
