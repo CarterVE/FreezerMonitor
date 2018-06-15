@@ -26,9 +26,9 @@ sensor = MCP9808.MCP9808()
 # Initialize sensor
 sensor.begin()
 
-temp_buffer = deque(maxlen=10)  # 10 position buffer for the last 10 reads
+temp_buffer = deque(maxlen=5)  # 5 position buffer for the last 5 reads
 
-mins_since_post = 15
+mins_since_post = 100
 last_post_selection = -1
 
 text_list = ["Don't blame the messenger, but someone left the freezer door open.",
@@ -104,14 +104,16 @@ def check_temp():
     if len(temp_buffer) == 1:
 
         override_msg = "Freezer monitor is up and running! (Note: This may indicate a power interruption occurred.)"
-        webhook_slack_post(temp_buffer[0], override_msg)
+        webhook_slack_post(temp_buffer[-1], override_msg)
+
+        time.sleep(600)         # Wait after first starting, for temperature to fall
 
 
-    if mean(temp_buffer) > -10 and mins_since_post > 10 and len(temp_buffer)>9:     # Ensures average is over -10 degC, mins since last post is over 10, and the buffer length is over 8 (ensures doesn't post repetitively on initialization), respectively
-        webhook_slack_post(temp_buffer[0], "")
+    if mean(temp_buffer) > -10 and mins_since_post > 15 and len(temp_buffer) > 4:     # Ensures average is over -10 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
+        webhook_slack_post(temp_buffer[-1], "")
         mins_since_post = 0
 
-    elif mean(temp_buffer) > -10 and mins_since_post < 10:   # Makes sure that app doesn't constantly post to slack, waits 5 minutes after last post (mins_since_post) before posting
+    elif mean(temp_buffer) > -10 and mins_since_post <= 15:   # Makes sure that app doesn't constantly post to slack, waits 5 minutes after last post (mins_since_post) before posting
         mins_since_post += 1
         if mins_since_post > 60000:
             mins_since_post = 100        # Ensures that integer doesn't overflow if freezer doesn't go over threshold for long time (unlikely, but possible)
