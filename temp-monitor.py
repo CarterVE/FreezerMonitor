@@ -59,7 +59,7 @@ def webhook_slack_post(temp, override_msg):
     global error_encountered
     global last_post_selection
 
-    req = urllib2.Request('https://hooks.slack.com/services/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')
+    req = urllib2.Request('https://hooks.slack.com/services/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')
     req.add_header('Content-Type', 'application/json')
 
     if override_msg == "":
