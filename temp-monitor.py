@@ -39,7 +39,8 @@ text_list = ["Don't blame the messenger, but someone left the freezer door open.
              "You know, there are cheaper ways to get air conditioning. Close the freezer door.",
              "Drip...drip...drip... That's the sound of everything in the freezer melting. Close the door!",
              "<Insert clever message about the freezer door bring open> ...Yeah I got lazy on this one.",
-             "It's called a freezer, not a melter! Close the door!"
+             "It's called a freezer, not a melter! Close the door!",
+             "Shiver me timbers! The freezer door is swinging in the breeze!"
              ]
 
 error_encountered = 0
@@ -54,32 +55,43 @@ def buf_to_str(buf):
         string = string + str(el) + ", "
     return string
 
-def webhook_slack_post(temp):
+def webhook_slack_post(temp, override_msg):
     global error_encountered
     global last_post_selection
 
-    try:
-        req = urllib2.Request('https://hooks.slack.com/services/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')
-        req.add_header('Content-Type', 'application/json')
+    req = urllib2.Request('https://hooks.slack.com/services/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')
+    req.add_header('Content-Type', 'application/json')
 
-        textChoice = random.randint(0,len(text_list) - 1)
+    if override_msg == "":
+        try:
+            textChoice = random.randint(0,len(text_list) - 1)
 
-        while last_post_selection == textChoice:
-            textChoice = random.randint(0, len(text_list) - 1)
+            while last_post_selection == textChoice:
+                textChoice = random.randint(0, len(text_list) - 1)
 
-        msgString = text_list[textChoice] + "\nThe temperature is currently: " + str(temp) + "˚C"
+            msgString = text_list[textChoice] + "\nThe temperature is currently: " + str(temp) + "˚C"
+
+            text = {
+
+                'text' : msgString
+
+            }
+
+            last_post_selection = textChoice        # Records which message was posted, so message is not repeated twice (might be annoying)
+
+            response = urllib2.urlopen(req, json.dumps(text))
+        except:
+            error_encountered = 1
+    else:
+        msgString = override_msg + "\nThe temperature is currently: " + str(temp) + "˚C"
 
         text = {
 
-            'text' : msgString
+            'text': msgString
 
         }
 
-        last_post_selection = textChoice        # Records which message was posted, so message is not repeated twice (might be annoying)
-
         response = urllib2.urlopen(req, json.dumps(text))
-    except:
-        error_encountered = 1
 
 
 def check_temp():
@@ -89,14 +101,26 @@ def check_temp():
     temp = sensor.readTempC()
     temp_buffer.append(temp)
 
-    if mean(temp_buffer) > -10 and mins_since_post > 10 and len(temp_buffer)>8:     # Ensures average is over -10 degC, mins since last post is over 10, and the buffer length is over 8 (ensures doesn't post repetitively on initialization), respectively
-        webhook_slack_post(temp_buffer[0])
+    if len(temp_buffer) == 1:
+
+        override_msg = "Freezer monitor is up and running! (Note: This may indicate a power interruption occurred.)"
+        webhook_slack_post(temp_buffer[0], override_msg)
+
+
+    if mean(temp_buffer) > -10 and mins_since_post > 10 and len(temp_buffer)>9:     # Ensures average is over -10 degC, mins since last post is over 10, and the buffer length is over 8 (ensures doesn't post repetitively on initialization), respectively
+        webhook_slack_post(temp_buffer[0], "")
         mins_since_post = 0
 
     elif mean(temp_buffer) > -10 and mins_since_post < 10:   # Makes sure that app doesn't constantly post to slack, waits 5 minutes after last post (mins_since_post) before posting
-        mins_since_post = mins_since_post + 1
+        mins_since_post += 1
         if mins_since_post > 60000:
             mins_since_post = 100        # Ensures that integer doesn't overflow if freezer doesn't go over threshold for long time (unlikely, but possible)
+
+    else:
+        mins_since_post += 1
+        if mins_since_post > 6000:
+            mins_since_post = 100
+
 
     time.sleep(60)
 
