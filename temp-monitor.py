@@ -29,6 +29,7 @@ sensor.begin()
 temp_buffer = deque(maxlen=10)  # 10 position buffer for the last 10 reads
 
 mins_since_post = 15
+last_post_selection = -1
 
 text_list = ["Don't blame the messenger, but someone left the freezer door open.",
              "Panic! Someone left the freezer open.",
@@ -55,12 +56,16 @@ def buf_to_str(buf):
 
 def webhook_slack_post(temp):
     global error_encountered
+    global last_post_selection
 
     try:
         req = urllib2.Request('https://hooks.slack.com/services/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')
         req.add_header('Content-Type', 'application/json')
 
         textChoice = random.randint(0,len(text_list) - 1)
+
+        while last_post_selection == textChoice:
+            textChoice = random.randint(0, len(text_list) - 1)
 
         msgString = text_list[textChoice] + "\nThe temperature is currently: " + str(temp) + "˚C"
 
@@ -69,6 +74,8 @@ def webhook_slack_post(temp):
             'text' : msgString
 
         }
+
+        last_post_selection = textChoice        # Records which message was posted, so message is not repeated twice (might be annoying)
 
         response = urllib2.urlopen(req, json.dumps(text))
     except:
@@ -82,7 +89,7 @@ def check_temp():
     temp = sensor.readTempC()
     temp_buffer.append(temp)
 
-    if mean(temp_buffer) > -10 and mins_since_post > 10:
+    if mean(temp_buffer) > -10 and mins_since_post > 10 and len(temp_buffer)>8:     # Ensures average is over -10 degC, mins since last post is over 10, and the buffer length is over 8 (ensures doesn't post repetitively on initialization), respectively
         webhook_slack_post(temp_buffer[0])
         mins_since_post = 0
 
