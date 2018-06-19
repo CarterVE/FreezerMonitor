@@ -59,7 +59,7 @@ def webhook_slack_post(temp, override_msg):
     global error_encountered
     global last_post_selection
 
-    req = urllib2.Request('https://hooks.slack.com/services/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')
+    req = urllib2.Request('')
     req.add_header('Content-Type', 'application/json')
 
     if override_msg == "":
@@ -109,11 +109,11 @@ def check_temp():
         time.sleep(600)         # Wait after first starting, for temperature to fall
 
 
-    if mean(temp_buffer) > -10 and mins_since_post > 15 and len(temp_buffer) > 4:     # Ensures average is over -10 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
+    if mean(temp_buffer) > -15 and mins_since_post > 15 and len(temp_buffer) > 4:     # Ensures average is over -10 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
         webhook_slack_post(temp_buffer[-1], "")
         mins_since_post = 0
 
-    elif mean(temp_buffer) > -10 and mins_since_post <= 15:   # Makes sure that app doesn't constantly post to slack, waits 5 minutes after last post (mins_since_post) before posting
+    elif mean(temp_buffer) > -15 and mins_since_post <= 15:   # Makes sure that app doesn't constantly post to slack, waits 5 minutes after last post (mins_since_post) before posting
         mins_since_post += 1
         if mins_since_post > 60000:
             mins_since_post = 100        # Ensures that integer doesn't overflow if freezer doesn't go over threshold for long time (unlikely, but possible)
