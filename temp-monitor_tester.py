@@ -61,7 +61,7 @@ def webhook_slack_post(temp, override_msg):
     global error_encountered
     global last_post_selection
 
-    req = urllib2.Request('https://hooks.slack.com/services/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')      #Watt lab slack - Freezer Monitor webhook link
+    req = urllib2.Request('https://hooks.slack.com/services/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')      # Web Tester Slack - Freezer Monitor webhook link
     req.add_header('Content-Type', 'application/json')
 
     if override_msg == "":
@@ -147,9 +147,9 @@ def check_temp():
             pickle.dump(script_runs, file_pickled_script_runs)
             file_pickled_script_runs.close()
 
-        time.sleep(600)         # Wait after first starting, for temperature to fall
+        time.sleep(30)         # Wait after first starting, for temperature to fall
 
-
+    '''
     if mean(temp_buffer) > -15 and mins_since_post > 15 and len(temp_buffer) > 4:     # Ensures average is over -10 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
         webhook_slack_post(temp_buffer[-1], "")
         mins_since_post = 0
@@ -163,7 +163,9 @@ def check_temp():
         mins_since_post += 1
         if mins_since_post > 6000:
             mins_since_post = 100
+    '''
 
+    webhook_slack_post(temp, "")
 
     time.sleep(60)
 
