@@ -9,6 +9,8 @@ from collections import deque
 import json
 import urllib2
 import random
+import os
+import cPickle as pickle
 
 # print '**************************************'
 # print '-----EXECUTING TEMP SENSOR SCRIPT-----'
@@ -59,7 +61,7 @@ def webhook_slack_post(temp, override_msg):
     global error_encountered
     global last_post_selection
 
-    req = urllib2.Request('')
+    req = urllib2.Request('https://hooks.slack.com/services/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')      # Watt lab slack - Freezer Monitor webhook link
     req.add_header('Content-Type', 'application/json')
 
     if override_msg == "":
@@ -103,8 +105,38 @@ def check_temp():
 
     if len(temp_buffer) == 1:
 
-        override_msg = "Freezer monitor is up and running! (Note: This may indicate a power interruption occurred.)"
-        webhook_slack_post(temp_buffer[-1], override_msg)
+        pickled_script_runs = "pickled_script_runs"
+
+        try:
+            file_pickled_script_runs = open(pickled_script_runs, "r")
+            script_runs = pickle.load(file_pickled_script_runs)
+            file_pickled_script_runs.close()
+            # print script_runs
+
+            if script_runs > 0:
+                override_msg = "Freezer monitor is running! (Note: This may indicate a power interruption occurred.)"
+                webhook_slack_post(temp_buffer[-1], override_msg)
+
+            if script_runs > 1000:
+                script_runs = 10       # Prevent overflow error, actual number of runtimes doesn't matter
+            else:
+                script_runs += 1
+
+            # script_runs = 0        # For resetting script runs to prevent Slack POST on next run
+
+            file_pickled_script_runs = open(pickled_script_runs, "w")
+            pickle.dump(script_runs, file_pickled_script_runs)
+            file_pickled_script_runs.close()
+
+        except IOError as e:
+            #print "IO Error({0}): {1}".format(e.errno, e.strerror)
+            file_pickled_script_runs = open(pickled_script_runs, "w")
+
+            #print "first run"
+            script_runs = 1
+
+            pickle.dump(script_runs, file_pickled_script_runs)
+            file_pickled_script_runs.close()
 
         time.sleep(600)         # Wait after first starting, for temperature to fall
 
