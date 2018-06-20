@@ -160,7 +160,7 @@ def check_temp():
         webhook_slack_post(temp_buffer[-1], "")
         mins_since_post = 0
 
-    elif mean(temp_buffer) > -15 and mins_since_post <= 15:   # Makes sure that app doesn't constantly post to slack, waits 5 minutes after last post (mins_since_post) before posting
+    elif mean(temp_buffer) > -17 and mins_since_post <= 15:   # Makes sure that app doesn't constantly post to slack, waits 5 minutes after last post (mins_since_post) before posting
         mins_since_post += 1
         if mins_since_post > 60000:
             mins_since_post = 100        # Ensures that integer doesn't overflow if freezer doesn't go over threshold for long time (unlikely, but possible)
