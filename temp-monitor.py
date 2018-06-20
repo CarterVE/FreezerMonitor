@@ -61,7 +61,7 @@ def webhook_slack_post(temp, override_msg):
     global error_encountered
     global last_post_selection
 
-    req = urllib2.Request('https://hooks.slack.com/services/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')      # Watt lab slack - Freezer Monitor webhook link
+    req = urllib2.Request('https://hooks.slack.com/services/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')      #TEMP Watt lab slack - Freezer Monitor webhook link  https://hooks.slack.com/services/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
     req.add_header('Content-Type', 'application/json')
 
     if override_msg == "":
@@ -71,7 +71,7 @@ def webhook_slack_post(temp, override_msg):
             while last_post_selection == textChoice:
                 textChoice = random.randint(0, len(text_list) - 1)
 
-            msgString = text_list[textChoice] + "\nThe temperature is currently: " + str(temp) + "˚C"
+            msgString =  "\nThe temperature is currently: " + str(temp) + "˚C"  #TEMP text_list[textChoice] +
 
             text = {
 
@@ -140,7 +140,7 @@ def check_temp():
 
         time.sleep(600)         # Wait after first starting, for temperature to fall
 
-
+    '''
     if mean(temp_buffer) > -15 and mins_since_post > 15 and len(temp_buffer) > 4:     # Ensures average is over -10 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
         webhook_slack_post(temp_buffer[-1], "")
         mins_since_post = 0
@@ -154,7 +154,9 @@ def check_temp():
         mins_since_post += 1
         if mins_since_post > 6000:
             mins_since_post = 100
+    '''
 
+    webhook_slack_post(temp, "")
 
     time.sleep(60)
 
