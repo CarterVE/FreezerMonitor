@@ -108,11 +108,12 @@ def check_temp():
         time.sleep(120)
 
         try:
-            path_to_run_file = "/home/pi/run_file.txt"
+            path_to_run_file = "/home/pi/run_freezer_monitor_file.txt"  #File to allow manual stop of script while in desktop mode
             run_tester = open(path_to_run_file, "r")
             run_tester.close()
         except IOError:
             quit()
+
 
         pickled_script_runs = "pickled_script_runs"
 

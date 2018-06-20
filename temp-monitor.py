@@ -107,14 +107,20 @@ def check_temp():
 
         time.sleep(120)
 
+        pickled_script_runs = "pickled_script_runs"
+
         try:
-            path_to_run_file = "/home/pi/run_file.txt"
+            path_to_run_file = "/home/pi/run_freezer_monitor_file.txt"
             run_tester = open(path_to_run_file, "r")
             run_tester.close()
         except IOError:
-            quit()
+            script_runs = 0
 
-        pickled_script_runs = "pickled_script_runs"
+            file_pickled_script_runs = open(pickled_script_runs, "w")
+            pickle.dump(script_runs, file_pickled_script_runs)
+            file_pickled_script_runs.close()
+
+            quit()
 
         try:
             file_pickled_script_runs = open(pickled_script_runs, "r")
@@ -147,10 +153,10 @@ def check_temp():
             pickle.dump(script_runs, file_pickled_script_runs)
             file_pickled_script_runs.close()
 
-        time.sleep(600)         # Wait after first starting, for temperature to fall
+        time.sleep(900)         # Wait after first starting, for temperature to fall
 
 
-    if mean(temp_buffer) > -15 and mins_since_post > 15 and len(temp_buffer) > 4:     # Ensures average is over -10 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
+    if mean(temp_buffer) > -17 and mins_since_post > 15 and len(temp_buffer) > 4:     # Ensures average is over -10 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
         webhook_slack_post(temp_buffer[-1], "")
         mins_since_post = 0
 
