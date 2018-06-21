@@ -123,6 +123,8 @@ def check_temp():
             file_pickled_script_runs.close()
             # print script_runs
 
+            script_runs = 0     # ***** To ensure freezer monitor doesn't post in slack (tester), and resets script runs pickled variable
+
             if script_runs > 0:
                 override_msg = "Freezer monitor is running! (Note: This may indicate a power interruption occurred.) Script runs: " + str(script_runs)
                 webhook_slack_post(temp_buffer[-1], override_msg)
@@ -132,7 +134,7 @@ def check_temp():
             else:
                 script_runs += 1
 
-            script_runs = 0        # For resetting script runs to prevent Slack POST on next run
+            script_runs = 0        # ****** For resetting script runs to prevent Slack POST on next run
 
             file_pickled_script_runs = open(pickled_script_runs, "w")
             pickle.dump(script_runs, file_pickled_script_runs)
@@ -143,7 +145,7 @@ def check_temp():
             file_pickled_script_runs = open(pickled_script_runs, "w")
 
             #print "first run"
-            script_runs = 1
+            script_runs = 0     # ***** To ensure freezer monitor doesn't post in slack (tester), and resets script runs pickled variable
 
             pickle.dump(script_runs, file_pickled_script_runs)
             file_pickled_script_runs.close()
