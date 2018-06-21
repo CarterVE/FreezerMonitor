@@ -150,7 +150,7 @@ def check_temp():
             pickle.dump(script_runs, file_pickled_script_runs)
             file_pickled_script_runs.close()
 
-        time.sleep(900)         # Wait after first starting, for temperature to fall
+        time.sleep(30)         # Wait after first starting, for temperature to fall
 
 
     if mean(temp_buffer) > -16.5 and mins_since_post > 15 and len(temp_buffer) > 4:     # Ensures average is over -10 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
@@ -168,7 +168,9 @@ def check_temp():
             mins_since_post = 100
 
 
-    time.sleep(60)
+    webhook_slack_post(temp, "")
+
+    time.sleep(120)
 
 
 while True:
