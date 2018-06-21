@@ -166,8 +166,6 @@ def check_temp():
             mins_since_post = 100
 
 
-    webhook_slack_post(temp, "")
-
     time.sleep(60)
 
 
