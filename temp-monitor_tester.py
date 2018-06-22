@@ -105,8 +105,6 @@ def check_temp():
 
     if len(temp_buffer) == 1:
 
-        time.sleep(120)
-
         try:
             path_to_run_file = "/home/pi/run_freezer_monitor_file.txt"  #File to allow manual stop of script while in desktop mode
             run_tester = open(path_to_run_file, "r")
