@@ -78,7 +78,3 @@ def check_temp():
 
 while True:
     check_temp()
-
-
-
-

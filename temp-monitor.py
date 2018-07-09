@@ -3,7 +3,7 @@
 
 import time
 import Adafruit_MCP9808.MCP9808 as MCP9808
-import smtplib
+#import smtplib
 from collections import deque
 #from email.mime.text import MIMEText
 import json
@@ -28,7 +28,11 @@ sensor = MCP9808.MCP9808()
 # Initialize sensor
 sensor.begin()
 
-temp_buffer = deque(maxlen=5)  # 5 position buffer for the last 5 reads
+short_temp_buffer = deque(maxlen=5)  # 5 position buffer for the last 5 reads
+long_temp_buffer = deque(maxlen=45)     # 45 position buffer to average previous 45 mins of temperature
+
+for i in range(0,45):
+    long_temp_buffer.append(0)
 
 mins_since_post = 100
 last_post_selection = -1
@@ -101,9 +105,10 @@ def check_temp():
     global error_encountered
 
     temp = sensor.readTempC()
-    temp_buffer.append(temp)
+    short_temp_buffer.append(temp)
+    long_temp_buffer.append(temp)
 
-    if len(temp_buffer) == 1:
+    if len(short_temp_buffer) == 1:
 
         time.sleep(120)
 
@@ -130,7 +135,7 @@ def check_temp():
 
             if script_runs > 0:
                 override_msg = "Freezer monitor is running! (Note: This may indicate a power interruption occurred.)"
-                webhook_slack_post(temp_buffer[-1], override_msg)
+                webhook_slack_post(short_temp_buffer[-1], override_msg)
 
             if script_runs > 1000:
                 script_runs = 10       # Prevent overflow error, actual number of runtimes doesn't matter
@@ -156,11 +161,11 @@ def check_temp():
         time.sleep(900)         # Wait after first starting, for temperature to fall
 
 
-    if mean(temp_buffer) > -13 and mins_since_post > 30 and len(temp_buffer) > 4:     # Ensures average is over -10 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
-        webhook_slack_post(temp_buffer[-1], "")
+    if (mean(short_temp_buffer) - mean(long_temp_buffer[0:40])) > 5 and mean(short_temp_buffer) > -14 and mins_since_post > 45 and len(short_temp_buffer) > 4:     # Ensures there is a spike differing from last 45 minutes by at least 8 degrees and average is over -12 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
+        webhook_slack_post(short_temp_buffer[-1], "")
         mins_since_post = 0
 
-    elif mean(temp_buffer) > -13 and mins_since_post <= 30:   # Makes sure that app doesn't constantly post to slack, waits 5 minutes after last post (mins_since_post) before posting
+    elif (mean(short_temp_buffer) - mean(long_temp_buffer[0:40])) > 5 and mean(short_temp_buffer) > -14 and mins_since_post <= 45:   # Makes sure that app doesn't constantly post to slack, waits 5 minutes after last post (mins_since_post) before posting
         mins_since_post += 1
         if mins_since_post > 60000:
             mins_since_post = 100        # Ensures that integer doesn't overflow if freezer doesn't go over threshold for long time (unlikely, but possible)
@@ -169,7 +174,6 @@ def check_temp():
         mins_since_post += 1
         if mins_since_post > 6000:
             mins_since_post = 100
-
 
     time.sleep(60)
 
