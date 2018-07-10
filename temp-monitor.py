@@ -28,8 +28,8 @@ sensor = MCP9808.MCP9808()
 # Initialize sensor
 sensor.begin()
 
-short_temp_buffer = deque(maxlen=5)  # 5 position buffer for the last 5 reads
-long_temp_buffer = deque(maxlen=45)     # 45 position buffer to average previous 45 mins of temperature
+short_temp_buffer = deque(maxlen=3)     # 3 position buffer for the last 3 mins of temperature
+long_temp_buffer = deque(maxlen=35)     # 35 position buffer to average previous 35 mins of temperature
 
 for i in range(0,45):
     long_temp_buffer.append(0)
@@ -161,11 +161,11 @@ def check_temp():
         time.sleep(900)         # Wait after first starting, for temperature to fall
 
 
-    if (mean(short_temp_buffer) - mean(long_temp_buffer[0:40])) > 5 and mean(short_temp_buffer) > -14 and mins_since_post > 45 and len(short_temp_buffer) > 4:     # Ensures there is a spike differing from last 45 minutes by at least 8 degrees and average is over -12 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
+    if (mean(short_temp_buffer) - mean(long_temp_buffer[0:30])) > 5 and mean(short_temp_buffer) > -14 and mins_since_post > 45 and len(short_temp_buffer) > 1:     # Ensures there is a spike differing from last 45 minutes by at least 8 degrees and average is over -12 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
         webhook_slack_post(short_temp_buffer[-1], "")
         mins_since_post = 0
 
-    elif (mean(short_temp_buffer) - mean(long_temp_buffer[0:40])) > 5 and mean(short_temp_buffer) > -14 and mins_since_post <= 45:   # Makes sure that app doesn't constantly post to slack, waits 5 minutes after last post (mins_since_post) before posting
+    elif (mean(short_temp_buffer) - mean(long_temp_buffer[0:30])) > 5 and mean(short_temp_buffer) > -14 and mins_since_post <= 45:   # Makes sure that app doesn't constantly post to slack, waits 5 minutes after last post (mins_since_post) before posting
         mins_since_post += 1
         if mins_since_post > 60000:
             mins_since_post = 100        # Ensures that integer doesn't overflow if freezer doesn't go over threshold for long time (unlikely, but possible)
