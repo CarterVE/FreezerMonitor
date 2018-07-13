@@ -161,11 +161,11 @@ def check_temp():
         time.sleep(900)         # Wait after first starting, for temperature to fall
 
 
-    if (mean(short_temp_buffer) - mean(long_temp_buffer[0:30])) > 5 and mean(short_temp_buffer) > -14 and mins_since_post > 45 and len(short_temp_buffer) > 1:     # Ensures there is a spike differing from last 45 minutes by at least 8 degrees and average is over -12 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
+    if (mean(long_temp_buffer[0:30]) - mean(short_temp_buffer)) > 5 and mean(short_temp_buffer) > -14 and mins_since_post > 45 and len(short_temp_buffer) > 1:     # Ensures there is a spike differing from last 45 minutes by at least 8 degrees and average is over -12 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
         webhook_slack_post(short_temp_buffer[-1], "")
         mins_since_post = 0
 
-    elif (mean(short_temp_buffer) - mean(long_temp_buffer[0:30])) > 5 and mean(short_temp_buffer) > -14 and mins_since_post <= 45:   # Makes sure that app doesn't constantly post to slack, waits 5 minutes after last post (mins_since_post) before posting
+    elif (mean(long_temp_buffer[0:30]) - mean(short_temp_buffer)) > 5 and mean(short_temp_buffer) > -14 and mins_since_post <= 45:   # Makes sure that app doesn't constantly post to slack, waits 5 minutes after last post (mins_since_post) before posting
         mins_since_post += 1
         if mins_since_post > 60000:
             mins_since_post = 100        # Ensures that integer doesn't overflow if freezer doesn't go over threshold for long time (unlikely, but possible)
