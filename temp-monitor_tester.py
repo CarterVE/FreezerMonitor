@@ -28,7 +28,7 @@ sensor = MCP9808.MCP9808()
 # Initialize sensor
 sensor.begin()
 
-temp_buffer = deque(maxlen=5)  # 5 position buffer for the last 5 reads
+temp_buffer = deque(maxlen=2)  # 2 position buffer for the last 5 reads
 
 mins_since_post = 100
 last_post_selection = -1
@@ -40,7 +40,7 @@ text_list = ["Don't blame the messenger, but someone left the freezer door open.
              "♫ Let it go, let it goooo ♫ And by it, I mean the freezer door when you close it.",
              "You know, there are cheaper ways to get air conditioning. Close the freezer door.",
              "Drip...drip...drip... That's the sound of everything in the freezer melting. Close the door!",
-             "<Insert clever message about the freezer door bring open> ...Yeah I got lazy on this one.",
+             "<Insert clever message about the freezer door bring open> ...Yeah I got lazy on that one.",
              "It's called a freezer, not a melter! Close the door!",
              "Shiver me timbers! The freezer door is swinging in the breeze!"
              ]
@@ -151,7 +151,7 @@ def check_temp():
         time.sleep(30)         # Wait after first starting, for temperature to fall
 
 
-    if mean(temp_buffer) > -15 and mins_since_post > 15 and len(temp_buffer) > 4:     # Ensures average is over -10 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
+    if mean(temp_buffer) > -15 and mins_since_post > 15 and len(temp_buffer) > 1:     # Ensures average is over -10 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
         webhook_slack_post(temp_buffer[-1], "")
         mins_since_post = 0
 

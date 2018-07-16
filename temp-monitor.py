@@ -11,6 +11,7 @@ import urllib2
 import random
 import os
 import cPickle as pickle
+from datetime import datetime, timedelta
 
 # print '**************************************'
 # print '-----EXECUTING TEMP SENSOR SCRIPT-----'
@@ -34,7 +35,7 @@ long_temp_buffer = deque(maxlen=35)     # 35 position buffer to average previous
 for i in range(0,45):
     long_temp_buffer.append(0)
 
-mins_since_post = 100
+mins_since_post = 15
 last_post_selection = -1
 
 text_list = ["Don't blame the messenger, but someone left the freezer door open.",
@@ -60,6 +61,10 @@ def buf_to_str(buf):
     for el in buf:
         string = string + str(el) + ", "
     return string
+
+def dt_adjust(dt):
+    delta = timedelta(hours=-4)
+    return dt + delta
 
 def webhook_slack_post(temp, override_msg):
     global error_encountered
@@ -107,6 +112,19 @@ def check_temp():
     temp = sensor.readTempC()
     short_temp_buffer.append(temp)
     long_temp_buffer.append(temp)
+
+    path_to_file = "/home/pi/FreezerMonitor_Status.txt"
+    date_time_gmt = datetime.today()
+    date_time_adj = dt_adjust(date_time_gmt)
+
+    txt = "FreezerMonitor last took a reading at: " + str(date_time_adj) + "\nThe temperature was: " + str(temp) + "°C" \
+        "\n\nIf this reading was taken within the last minute, FreezerMonitor is currently running. (Note: Hour may be incorrect based on DST/time zone)." \
+        "\n\nTo stop FreezerMonitor, rename run_freezer_monitor_file.txt to dont_run_freezer_monitor_file.txt, and reboot." \
+        "\nIf file is not named run_freezer_monitor_file.txt, FreezerMonitor will not run."
+
+    fileWriter = open(path_to_file, 'w')
+    fileWriter.write(txt)
+    fileWriter.close()
 
     if len(short_temp_buffer) == 1:
 
@@ -158,22 +176,17 @@ def check_temp():
             pickle.dump(script_runs, file_pickled_script_runs)
             file_pickled_script_runs.close()
 
-        time.sleep(900)         # Wait after first starting, for temperature to fall
+        time.sleep(300)         # Wait after first starting, for temperature to fall
 
 
-    if (mean(long_temp_buffer[0:30]) - mean(short_temp_buffer)) > 5 and mean(short_temp_buffer) > -14 and mins_since_post > 45 and len(short_temp_buffer) > 1:     # Ensures there is a spike differing from last 45 minutes by at least 8 degrees and average is over -12 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
+    if (mean(short_temp_buffer) - mean(long_temp_buffer[0:30])) > 5 and mean(short_temp_buffer) > -14 and mins_since_post > 45 and len(long_temp_buffer) > 30:     # Ensures there is a spike differing from last 45 minutes by at least 8 degrees and average is over -12 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
         webhook_slack_post(short_temp_buffer[-1], "")
         mins_since_post = 0
 
-    elif (mean(long_temp_buffer[0:30]) - mean(short_temp_buffer)) > 5 and mean(short_temp_buffer) > -14 and mins_since_post <= 45:   # Makes sure that app doesn't constantly post to slack, waits 5 minutes after last post (mins_since_post) before posting
-        mins_since_post += 1
-        if mins_since_post > 60000:
-            mins_since_post = 100        # Ensures that integer doesn't overflow if freezer doesn't go over threshold for long time (unlikely, but possible)
-
-    else:
+    else:                               # Makes sure that app doesn't constantly post to slack, waits 45 minutes after last post (mins_since_post) before posting
         mins_since_post += 1
         if mins_since_post > 6000:
-            mins_since_post = 100
+            mins_since_post = 100       # Ensures that integer doesn't overflow if freezer doesn't go over threshold for long time (unlikely, but possible)
 
     time.sleep(60)
 
