@@ -12,6 +12,7 @@ import random
 import os
 import cPickle as pickle
 from datetime import datetime, timedelta
+import itertools
 
 # print '**************************************'
 # print '-----EXECUTING TEMP SENSOR SCRIPT-----'
@@ -32,7 +33,7 @@ sensor.begin()
 short_temp_buffer = deque(maxlen=3)     # 3 position buffer for the last 3 mins of temperature
 long_temp_buffer = deque(maxlen=35)     # 35 position buffer to average previous 35 mins of temperature
 
-for i in range(0,45):
+for i in range(0,35):
     long_temp_buffer.append(0)
 
 mins_since_post = 15
@@ -112,6 +113,7 @@ def check_temp():
     temp = sensor.readTempC()
     short_temp_buffer.append(temp)
     long_temp_buffer.append(temp)
+    long_temp_buffer_fThirty = list(itertools.islice(long_temp_buffer, 0, 30))
 
     path_to_file = "/home/pi/FreezerMonitor_Status.txt"
     date_time_gmt = datetime.today()
@@ -124,7 +126,7 @@ def check_temp():
 
     with open(path_to_file, 'w') as f:
         f.write(txt)
-    os.chmod(path_to_file, 0o777)
+    #os.chmod(path_to_file, 0o777)
 
     if len(short_temp_buffer) == 1:
 
@@ -179,7 +181,7 @@ def check_temp():
         time.sleep(300)         # Wait after first starting, for temperature to fall
 
 
-    elif (mean(short_temp_buffer) - mean(long_temp_buffer[0:30])) > 5 and mean(short_temp_buffer) > -14 and mins_since_post > 45 and len(long_temp_buffer) > 30:     # Ensures there is a spike differing from last 45 minutes by at least 8 degrees and average is over -12 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
+    elif (mean(short_temp_buffer) - mean(long_temp_buffer_fThirty)) > 5 and mean(short_temp_buffer) > -14 and mins_since_post > 45:     # Ensures there is a spike differing from last 45 minutes by at least 8 degrees and average is over -12 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
         webhook_slack_post(short_temp_buffer[-1], "")
         mins_since_post = 0
 
