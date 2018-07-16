@@ -120,11 +120,11 @@ def check_temp():
     txt = "FreezerMonitor last took a reading at: " + str(date_time_adj) + "\nThe temperature was: " + str(temp) + "°C" \
         "\n\nIf this reading was taken within the last minute, FreezerMonitor is currently running. (Note: Hour may be incorrect based on DST/time zone)." \
         "\n\nTo stop FreezerMonitor, rename run_freezer_monitor_file.txt to dont_run_freezer_monitor_file.txt, and reboot." \
-        "\nIf file is not named run_freezer_monitor_file.txt, FreezerMonitor will not run."
+        "\nIf file is not named run_freezer_monitor_file.txt, FreezerMonitor will not run.\n"
 
-    fileWriter = open(path_to_file, 'w')
-    fileWriter.write(txt)
-    fileWriter.close()
+    with open(path_to_file, 'w') as f:
+        f.write(txt)
+    os.chmod(path_to_file, 0o777)
 
     if len(short_temp_buffer) == 1:
 
@@ -179,7 +179,7 @@ def check_temp():
         time.sleep(300)         # Wait after first starting, for temperature to fall
 
 
-    if (mean(short_temp_buffer) - mean(long_temp_buffer[0:30])) > 5 and mean(short_temp_buffer) > -14 and mins_since_post > 45 and len(long_temp_buffer) > 30:     # Ensures there is a spike differing from last 45 minutes by at least 8 degrees and average is over -12 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
+    elif (mean(short_temp_buffer) - mean(long_temp_buffer[0:30])) > 5 and mean(short_temp_buffer) > -14 and mins_since_post > 45 and len(long_temp_buffer) > 30:     # Ensures there is a spike differing from last 45 minutes by at least 8 degrees and average is over -12 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
         webhook_slack_post(short_temp_buffer[-1], "")
         mins_since_post = 0
 
