@@ -11,6 +11,7 @@ import urllib2
 import random
 import os
 import cPickle as pickle
+from datetime import datetime, timedelta
 
 #***************************************
 #***** TESTER - FREEZER MONITOR  *******
@@ -57,6 +58,10 @@ def buf_to_str(buf):
         string = string + str(el) + ", "
     return string
 
+def dt_adjust(dt):
+    delta = timedelta(hours=-4)
+    return dt + delta
+
 def webhook_slack_post(temp, override_msg):
     global error_encountered
     global last_post_selection
@@ -102,6 +107,18 @@ def check_temp():
 
     temp = sensor.readTempC()
     temp_buffer.append(temp)
+
+    path_to_file = "/home/pi/FreezerMonitor_Status.txt"
+    date_time_gmt = datetime.today()
+    date_time_adj = dt_adjust(date_time_gmt)
+
+    txt = "***TESTER*** FreezerMonitorTESTER last took a reading at: " + str(date_time_adj) + "\nThe temperature was: " + str(temp) + "°C" \
+        "\n\nIf this reading was taken within the last minute, FreezerMonitorTESTER is currently running. (Note: Hour may be incorrect based on DST/time zone)." \
+        "\n\nTo stop FreezerMonitor, rename run_freezer_monitor_file.txt to dont_run_freezer_monitor_file.txt, and reboot." \
+        "\nIf file is not named run_freezer_monitor_file.txt, FreezerMonitorTESTER will not run.\n"
+
+    with open(path_to_file, 'w') as f:
+        f.write(txt)
 
     if len(temp_buffer) == 1:
 
