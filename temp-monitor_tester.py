@@ -12,9 +12,9 @@ import random
 import os
 import cPickle as pickle
 
-# print '**************************************'
-# print '-----EXECUTING TEMP SENSOR SCRIPT-----'
-# print '**************************************'
+#***************************************
+#***** TESTER - FREEZER MONITOR  *******
+#***************************************
 
 # Script created using scripts from:
 # http://www.billconnelly.net/?p=375
