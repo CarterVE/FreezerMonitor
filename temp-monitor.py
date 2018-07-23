@@ -181,7 +181,7 @@ def check_temp():
         time.sleep(300)         # Wait after first starting, for temperature to fall
 
 
-    elif ((mean(short_temp_buffer) - mean(long_temp_buffer_fThirty)) > 5 and mean(short_temp_buffer) > -14 and mins_since_post > 45) or (mean(short_temp_buffer) > -8 and mins_since_post > 45):     # Ensures there is a spike differing from last 45 minutes by at least 8 degrees and average is over -12 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
+    elif ((mean(short_temp_buffer) - mean(long_temp_buffer_fThirty)) > 5 and mean(short_temp_buffer) > -12 and mins_since_post > 45) or (mean(short_temp_buffer) > -8 and mins_since_post > 45):     # Ensures there is a spike differing from last 45 minutes by at least 8 degrees and average is over -12 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
         webhook_slack_post(short_temp_buffer[-1], "")
         mins_since_post = 0
 
