@@ -131,15 +131,14 @@ def check_temp():
     #os.chmod(path_to_file, 0o777)
 
     path_to_last24hour_file = "/home/pi/FreezerTemperatures_Last24Hours.csv"
-    with open(path_to_last24hour_file, "wr") as f:
+    with open(path_to_last24hour_file, "a+") as f:
         data = list(csv.reader(f))
-
-    with open(path_to_last24hour_file, "w") as f:
         writer = csv.writer(f)
         for row in data:
             if row[0] > str(date_time_adj + timedelta(days=-1)):
                 writer.writerow(row)
         writer.writerow([date_time_adj, temp])
+
 
     if len(short_temp_buffer) == 1:
 
