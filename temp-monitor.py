@@ -13,6 +13,7 @@ import os
 import cPickle as pickle
 from datetime import datetime, timedelta
 import itertools
+import csv
 
 #***************************************
 #********* FREEZER MONITOR  ************
@@ -115,18 +116,30 @@ def check_temp():
     long_temp_buffer.append(temp)
     long_temp_buffer_fThirty = list(itertools.islice(long_temp_buffer, 0, 30))
 
-    path_to_file = "/home/pi/FreezerMonitor_Status.txt"
+    path_to_status_file = "/home/pi/FreezerMonitor_Status.txt"
     date_time_gmt = datetime.today()
     date_time_adj = dt_adjust(date_time_gmt)
 
     txt = "FreezerMonitor last took a reading at: " + str(date_time_adj) + "\nThe temperature was: " + str(temp) + "°C" \
         "\n\nIf this reading was taken within the last minute, FreezerMonitor is currently running. (Note: Hour may be incorrect based on DST/time zone)." \
+        "\nTo see/graph last 24 hours of measurements, open FreezerTemperatures_Last24Hours.csv" \
         "\n\nTo stop FreezerMonitor, rename run_freezer_monitor_file.txt to dont_run_freezer_monitor_file.txt, and reboot." \
         "\nIf file is not named run_freezer_monitor_file.txt, FreezerMonitor will not run.\n"
 
-    with open(path_to_file, 'w') as f:
+    with open(path_to_status_file, 'w') as f:
         f.write(txt)
     #os.chmod(path_to_file, 0o777)
+
+    path_to_last24hour_file = "/home/pi/FreezerTemperatures_Last24Hours.csv"
+    with open(path_to_last24hour_file, "r") as f:
+        data = list(csv.reader(f))
+
+    with open(path_to_last24hour_file, "w") as f:
+        writer = csv.writer(f)
+        for row in data:
+            if row[0] > str(date_time_adj + timedelta(days=-1)):
+                writer.writerow(row)
+        writer.writerow([date_time_adj, temp])
 
     if len(short_temp_buffer) == 1:
 
