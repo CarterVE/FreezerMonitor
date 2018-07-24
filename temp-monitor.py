@@ -133,6 +133,8 @@ def check_temp():
     path_to_last24hour_file = "/home/pi/FreezerTemperatures_Last24Hours.csv"
     with open(path_to_last24hour_file, "a+") as f:
         data = list(csv.reader(f))
+
+    with open(path_to_last24hour_file, "w") as f:
         writer = csv.writer(f)
         for row in data:
             if row[0] > str(date_time_adj + timedelta(days=-1)):
