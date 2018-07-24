@@ -131,7 +131,7 @@ def check_temp():
     #os.chmod(path_to_file, 0o777)
 
     path_to_last24hour_file = "/home/pi/FreezerTemperatures_Last24Hours.csv"
-    with open(path_to_last24hour_file, "r") as f:
+    with open(path_to_last24hour_file, "wr") as f:
         data = list(csv.reader(f))
 
     with open(path_to_last24hour_file, "w") as f:
