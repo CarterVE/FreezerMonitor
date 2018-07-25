@@ -202,7 +202,7 @@ def check_temp():
 
     time.sleep(60)
 
-time.sleep(120)
+time.sleep(60)
 
 while True:
     check_temp()
