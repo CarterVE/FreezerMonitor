@@ -111,6 +111,20 @@ def check_temp():
     global mins_since_post
     global error_encountered
 
+    pickled_script_runs = "pickled_script_runs"
+
+    try:
+        path_to_run_file = "/home/pi/run_freezer_monitor_file.txt"
+        run_tester = open(path_to_run_file, "r")
+        run_tester.close()
+    except IOError:
+        script_runs = 0
+        file_pickled_script_runs = open(pickled_script_runs, "w")
+        pickle.dump(script_runs, file_pickled_script_runs)           # Resets script runs if the file run_freezer_monitor_file.txt does not exist
+        file_pickled_script_runs.close()
+        print "Script runs reset, Freezer Monitor quitting now..."
+        quit()                  # Quits the application if the file run_freezer_monitor_file.txt does not exist
+
     temp = sensor.readTempC()
     short_temp_buffer.append(temp)
     long_temp_buffer.append(temp)
@@ -144,23 +158,6 @@ def check_temp():
 
     if len(short_temp_buffer) == 1:
 
-        time.sleep(120)
-
-        pickled_script_runs = "pickled_script_runs"
-
-        try:
-            path_to_run_file = "/home/pi/run_freezer_monitor_file.txt"
-            run_tester = open(path_to_run_file, "r")
-            run_tester.close()
-        except IOError:
-            script_runs = 0
-
-            file_pickled_script_runs = open(pickled_script_runs, "w")
-            pickle.dump(script_runs, file_pickled_script_runs)
-            file_pickled_script_runs.close()
-
-            quit()
-
         try:
             file_pickled_script_runs = open(pickled_script_runs, "r")
             script_runs = pickle.load(file_pickled_script_runs)
@@ -168,7 +165,7 @@ def check_temp():
             # print script_runs
 
             if script_runs > 0:
-                override_msg = "Freezer monitor is running! (Note: This may indicate a power interruption occurred.)"
+                override_msg = "Freezer monitor is running! (This may indicate a power interruption occurred.)"
                 webhook_slack_post(short_temp_buffer[-1], override_msg)
 
             if script_runs > 1000:
@@ -182,17 +179,16 @@ def check_temp():
             pickle.dump(script_runs, file_pickled_script_runs)
             file_pickled_script_runs.close()
 
-        except IOError as e:
+        except IOError:
             #print "IO Error({0}): {1}".format(e.errno, e.strerror)
             file_pickled_script_runs = open(pickled_script_runs, "w")
-
-            #print "first run"
             script_runs = 1
-
             pickle.dump(script_runs, file_pickled_script_runs)
             file_pickled_script_runs.close()
 
-        time.sleep(300)         # Wait after first starting, for temperature to fall
+        while temp > -14:       # Waits for the temperature to fall after starting, unless this is not necessary
+            time.sleep(60)
+            temp = sensor.readTempC()
 
 
     elif ((mean(short_temp_buffer) - mean(long_temp_buffer_fThirty)) > 5 and mean(short_temp_buffer) > -12 and mins_since_post > 45) or (mean(short_temp_buffer) > -8 and mins_since_post > 45):     # Ensures there is a spike differing from last 45 minutes by at least 8 degrees and average is over -12 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
@@ -206,6 +202,7 @@ def check_temp():
 
     time.sleep(60)
 
+time.sleep(120)
 
 while True:
     check_temp()
