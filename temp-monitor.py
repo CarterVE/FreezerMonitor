@@ -191,7 +191,7 @@ def check_temp():
             temp = sensor.readTempC()
 
     elif mean(short_temp_buffer) > -2 and mins_since_post > 45:
-        webhook_slack_post(short_temp_buffer[-1], "STUFF IS MELTING!! The freezer is almost definitely open, someone check please!")
+        webhook_slack_post(short_temp_buffer[-1], "STUFF IS MELTING!! The freezer is almost definitely open, someone check please!\n***At this temperature, everything in the door is above zero.***")
         mins_since_post = 0
 
     elif ((mean(short_temp_buffer) - mean(long_temp_buffer_fThirty)) > 5 and mean(short_temp_buffer) > -12 and mins_since_post > 45) or (mean(short_temp_buffer) > -8 and mins_since_post > 45):     # Ensures there is a spike differing from last 45 minutes by at least 8 degrees and average is over -12 degC, mins since last post is over 10, and that buffer of temperatures is full, respectively
