@@ -47,7 +47,7 @@ text_list = ["Don't blame the messenger, but someone left the freezer door open.
              "♫ Let it go, let it goooo ♫ And by it, I mean the freezer door when you close it.",
              "You know, there are cheaper ways to get air conditioning. Close the freezer door.",
              "Drip...drip...drip... That's the sound of everything in the freezer melting. Close the door!",
-             "<Insert clever message about the freezer door bring open> ...Yeah I got lazy on this one.",
+             "<Insert clever message about the freezer door being open> ...Yeah I got lazy on this one.",
              "It's called a freezer, not a melter! Close the door!",
              "Shiver me timbers! The freezer door is swinging in the breeze!"
              ]
